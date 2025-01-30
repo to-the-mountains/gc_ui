@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { updateLocation } from "../utils/apiService.tsx";
+import { logoutUser } from "../utils/loginUser.tsx";
 import React from "react";
 import "../styles/Header.css"; // Import the CSS file
 
@@ -49,7 +50,7 @@ export default function Header() {
               <option value={24}>Massanutten</option>
             </select>
             <div>
-              <button className="logout-button">Logout</button>
+              <button className="logout-button" onClick={logoutUser}>Logout</button>
             </div>
           </div>
         )}
