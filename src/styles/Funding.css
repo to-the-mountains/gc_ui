@@ -1,0 +1,187 @@
+/* General container styling */
+.funding-container {
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* Header section */
+.funding-header {
+    display: flex;
+    align-items: center;
+    height: 15vh;
+}
+
+/* Date picker input */
+.funding-date-picker input {
+    padding: 10px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+/* Table header */
+.funding-table-header {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    justify-content: center;
+    background-color: #666;
+    color: white;
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 8px 8px 0 0;
+    text-align: center;
+}
+
+/* Table rows */
+.funding-table-row {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    justify-content: center;
+    text-align: center;
+    padding: 10px;
+    font-size: 14px;
+}
+
+/* Alternating row background */
+.funding-table-row-alt {
+    background-color: #f3f3f3;
+}
+
+/* Scrollable area */
+.funding-scroll {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* Hide scrollbar but allow scrolling */
+.funding-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+/* Fund button */
+.funding-fund-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Fund button hover effect */
+.funding-fund-icon {
+    transition: transform 0.2s ease-in-out;
+}
+
+.funding-fund-icon:hover {
+    transform: scale(1.1);
+}
+
+/* Container for the section containing filters and date picker */
+.funding-section {
+    display: flex;
+    /* Distributes items evenly with space in between */
+    align-items: center;
+    height: 15vh;
+    border: 2px solid #d1d5db;
+    margin-top: 1%;
+    margin-bottom: 1%;
+    padding-right: 10%;
+    border-radius: 5px;
+}
+
+.funding-date-picker{
+    margin-right: 2%; /* Adds space between each section */
+    margin-left: 2%;
+} 
+
+.funding-button {
+    margin-right: 2%; /* Adds space between each section */
+    margin-left: 2%;
+}
+
+
+
+/* Date picker styles */
+.funding-date-picker input {
+    border: 2px solid #d1d5db;
+    margin: 0;
+    padding: 15px 10px;
+    border-radius: 5px;
+    margin-left: 5%;
+    width: 250px;
+}
+
+/* Column wrapper for the filters */
+.funding-filters-column {
+    padding: 1%;
+    margin-left: 2%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Adjust the checkbox spacing */
+.funding-filters-column div {
+    margin-bottom: 10px;
+}
+
+/* Button styles for creating a fund card */
+.funding-button {
+    background: none;
+    color: inherit;
+    border: none;
+    padding: 0;
+    font-size: inherit;
+    cursor: pointer;
+  }
+  
+  .funding-button-style {
+    background: #f15e44;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.25rem;
+    text-decoration: none;  /* Remove underline */
+  }
+  
+  .funding-button-style:hover {
+    background: #d14d3d;  /* Change color on hover */
+  }
+
+/* Header grid for the fund details */
+.funding-header-grid {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr) repeat(2, 0.5fr);  /* 9 columns with equal space, 3 columns with less space */
+    justify-content: center;
+    background-color: #666;
+    color: white;
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 8px 8px 0 0;
+    text-align: center;
+}
+
+/* Item grid for displaying the funding details */
+.funding-item-grid {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr) repeat(2, 0.5fr);  /* 9 columns with equal space, 3 columns with less space */
+    justify-content: center;
+    text-align: center;
+    padding: 10px;
+    font-size: 14px;
+}
+
+/* Alternate row styling */
+.funding-item-grid-alt {
+    background-color: #f3f3f3;
+}
+
+/* Scrollable container */
+.scrollable-funding-list {
+    overflow-y: scroll;
+    max-height: 60vh;
+}
+
+/* Custom styling for scrollbars */
+.hide-scroll::-webkit-scrollbar {
+    display: none;
+}

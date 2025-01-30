@@ -1,0 +1,106 @@
+/* Header container */
+.header {
+    background-color: #304653;
+    padding: 0px 10px;
+  }
+  
+  /* Top section: Logo & User Info */
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 0 20px;
+  }
+  
+  /* Logo container */
+  .header-logo {
+    position: relative;
+    width: 200px; /* Adjust width as needed */
+    display: flex;
+    justify-content: center;
+    text-decoration: none;
+  }
+  
+  /* Logo image */
+  .header-logo img {
+    background-color: #304653;
+    width: 150px;
+    height: auto;
+  }
+  
+  /* Centered overlapping text */
+  .header-logo-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, 35%);
+    font-size: 1.5rem;
+    color: white;
+    font-family: "League Script", serif;
+    font-weight: bold;
+    text-align: center;
+    white-space: nowrap;
+  }
+  
+  /* Location Selector */
+  .location-selector {
+    color: black;
+    background-color: white;
+    border-radius: 5px;
+    padding: 15px 10px;
+    font-size: 1rem;
+    font-weight: bold;
+  }
+  
+  /* User info section */
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    color: white;
+  }
+  
+  .logout-button {
+    background: #c4a847;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    border-radius: 5px;
+    padding: 10%;
+    width: 100px
+  }
+  
+  .logout-button:hover {
+    text-decoration: underline;
+  }
+  
+  /* Navigation Tabs */
+  .nav-tabs {
+    margin-left: 10%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    font-size: 1.2rem;
+    border-radius: 10px 10px 0 0;
+    overflow: hidden;
+    background-color: #cccccc;
+    width: fit-content;
+  }
+  
+  .nav-tabs a {
+    padding: 10px 20px;
+    text-decoration: none;
+    color: black;
+    transition: background 0.3s ease-in-out;
+  }
+  
+  .nav-tabs a:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .nav-tabs .active {
+    background-color: white;
+  }
+  
