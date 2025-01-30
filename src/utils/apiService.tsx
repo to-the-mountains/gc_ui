@@ -121,6 +121,25 @@ export const fundCard = async (data: any) => {
   }
 };
 
+export const logTransactions = async (data: any) => {
+    try {
+      const request = {
+        data
+      }
+      const url = `${API_URL}/logTransactions`;
+      const response = await apiRequest(
+        post,
+        url,
+        'logTransactions',
+        request
+      );
+      return response;
+    } catch (error) {
+      console.error('Error fetching data', error);
+      throw error;
+    }
+  };
+
 export const voidCard = async (data: any) => {
   try {
     const request = {

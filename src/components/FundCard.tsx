@@ -1,7 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { fundCard } from "../utils/apiService.tsx";
+import { fundCard, logTransactions } from "../utils/apiService.tsx";
 
 export default function FundCard() {
     const [searchParams] = useSearchParams();
@@ -30,16 +30,24 @@ export default function FundCard() {
         parseFloat(formData.amount) ===
             parseFloat(formData.premium) + parseFloat(formData.refund);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { id, value } = e.target;
-
-        // Ensure only valid numeric input
-        const numericValue = value.replace(/[^0-9.]/g, ""); // Remove non-numeric characters except "."
-        setFormData((prevData) => ({
-            ...prevData,
-            [id]: numericValue,
-        }));
-    };
+            const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                const { id, value } = e.target;
+            
+                // If the field is 'customer' or 'subProgram', allow letters and spaces
+                if (id === "customer" || id === "subProgram") {
+                    setFormData((prevData) => ({
+                        ...prevData,
+                        [id]: value,  // Allow all characters for these fields
+                    }));
+                } else {
+                    // For other fields, ensure only valid numeric input
+                    const numericValue = value.replace(/[^0-9.]/g, ""); // Remove non-numeric characters except "."
+                    setFormData((prevData) => ({
+                        ...prevData,
+                        [id]: numericValue,
+                    }));
+                }
+            };
 
     const handleSubmit = async () => {
         if (isFormValid) {
@@ -53,9 +61,38 @@ export default function FundCard() {
                 // Check for specific keywords in the response
                 if (response.includes("1,Transaction successful")) {
                     setStatusMessage("Card Funded Successfully!");
+                    const locationMap = {
+                        22: "Main Line",
+                        23: "In House",
+                        24: "Massanutten",
+                      };
+                      const locationId = localStorage.getItem("location");
+                      const location = locationMap[locationId || 22] || "Main Line";
+                    const requestString = JSON.stringify({
+                        attmid: formData.attmid,
+                        amount: formData.amount,
+                        transaction: "fundCard"
+                    },null,2)
+                    console.log(formData)
+                    const logResponse = await logTransactions({
+                        gcNumber: formData.attmid,
+                        amount: formData.amount,
+                        premium: formData.premium,
+                        refund: formData.refund,
+                        customer: formData.customer,
+                        tourId: formData.tourId,
+                        subProgram: formData.subProgram,
+                        request: requestString,  // Pass your request string here
+                        response: response,  // Pass your response string here
+                        responseCode: "1",  // Pass your response code here
+                        responseDesc: "Transaction successful",  // Pass response description
+                        locationId: location // Pass location ID here based on the form data or your source
+                      });
+                      console.log(logResponse)
                 } else if (response.includes("15,Error!")) {
                     setStatusMessage("Card Already Funded");
-                } else {
+                } 
+                else {
                     setStatusMessage("Error Occurred. Card Failed to be Funded.");
                 }
             } catch (error) {
