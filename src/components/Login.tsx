@@ -34,7 +34,7 @@ export default function Login() {
 
     const handleLogin = async () => {
         // if (location) {
-            const user = await loginUser(location); // Call the loginUser function
+            const user = await loginUser(); // Call the loginUser function
             if (user) {
                 navigate("/tour"); // Redirect to /tour after successful login
             } else {

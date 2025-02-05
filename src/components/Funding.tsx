@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { getFundingList } from "../utils/apiService.tsx";
 import { Link } from "react-router";
@@ -36,25 +36,11 @@ export default function Funding() {
         return parseInt(safeLocalStorageGet("location", "22"));
     });
 
-    useEffect(() => {
-        const storedLocation = localStorage.getItem("location");
-        if (!storedLocation) {
-            navigate("/funding");
-        }
-    }, [navigate]);
-
-    const formatDate = (date: Date): string => {
-        const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-            .toISOString()
-            .split("T")[0];
-        return localDate;
-    };
-
     const [date, setDate] = useState<string>(() => {
         const today = new Date();
-        return formatDate(today);
+        return today.toISOString().split("T")[0];
     });
-
+    const [searchInput, setSearchInput] = useState("");
     const [filters, setFilters] = useState({
         showUnfundedCards: true,
         showFundedCards: true,
@@ -62,11 +48,13 @@ export default function Funding() {
         showVoidTransTransactions: true,
     });
 
+    const [sortColumn, setSortColumn] = useState<keyof fundingInfo | null>(null);
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
     const fetchFundingList = async () => {
         const results = await getFundingList({
             username: username,
-            date: date,
-            locationID: location,
+            date: date
         });
         const mappedResults: fundingInfo[] = results.map((item: any) => ({
             gcNumber: item.GC_Number || "Unknown",
@@ -85,25 +73,33 @@ export default function Funding() {
     };
 
     useEffect(() => {
+        fetchFundingList();
+    }, [location, date]);
+
+    useEffect(() => {
         const filtered = fundingList.filter((item) => {
             if (!filters.showUnfundedCards && item.cardStatus === "Created") return false;
             if (!filters.showFundedCards && item.cardStatus === "Funded") return false;
-            if (
-                !filters.showZeroPurseTransactions &&
-                item.cardStatus === "Funded" &&
-                item.balance === null
-            )
+            if (!filters.showZeroPurseTransactions && item.cardStatus === "Funded" && item.balance === null)
                 return false;
             if (!filters.showVoidTransTransactions && item.cardStatus === "Voided") return false;
-
+    
+            // Apply search filter (case insensitive) for customer or gcNumber
+            if (searchInput.trim() !== "" &&
+                !(
+                    item.customer.toLowerCase().includes(searchInput.toLowerCase()) ||
+                    (item.gcNumber && item.gcNumber.toLowerCase().includes(searchInput.toLowerCase()))
+                )
+            ) {
+                return false;
+            }
+    
             return true;
         });
+    
         setFilteredFundingList(filtered);
-    }, [filters, fundingList]);
-
-    useEffect(() => {
-        fetchFundingList();
-    }, [location, date]);
+    }, [filters, fundingList, searchInput]); // Kept dependencies intact
+    
 
     useEffect(() => {
         const handleStorageChange = (event: StorageEvent) => {
@@ -122,12 +118,52 @@ export default function Funding() {
         setDate(e.target.value);
     };
 
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchInput(e.target.value);
+    };
+
     const handleFilterChange = (filterName: keyof typeof filters) => {
         setFilters((prev) => ({
             ...prev,
             [filterName]: !prev[filterName],
         }));
     };
+
+    const handleSort = (column: keyof fundingInfo) => {
+        if (sortColumn === column) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setSortColumn(column);
+            setSortDirection("asc");
+        }
+    };
+
+    // Sorting logic, applied after filtering
+    const sortedFundingList = useMemo(() => {
+        let sortedList = filteredFundingList;
+
+        if (sortColumn) {
+            sortedList = [...filteredFundingList].sort((a, b) => {
+                let valA = a[sortColumn] || "";
+                let valB = b[sortColumn] || "";
+
+                // Convert numeric values for proper sorting
+                if (sortColumn === "amount" || sortColumn === "premium" || sortColumn === "refund" || sortColumn === "balance") {
+                    valA = parseFloat(valA.replace("$", "")) || 0;
+                    valB = parseFloat(valB.replace("$", "")) || 0;
+                } else {
+                    valA = valA.toString().toLowerCase();
+                    valB = valB.toString().toLowerCase();
+                }
+
+                if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+                if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+                return 0;
+            });
+        }
+
+        return sortedList;
+    }, [sortColumn, sortDirection, filteredFundingList]);
 
     return (
         <div className="mx-8">
@@ -147,9 +183,27 @@ export default function Funding() {
                         onChange={handleDateChange}
                         value={date}
                     />
-
                 </div>
-                <div className="funding-filters-column" style={{marginRight:"-3%", marginTop: '.5%'}}>
+
+                <div className="input-search">
+                    <input
+                        style={{
+                            paddingRight: "10%",
+                            fontSize: "x-large",
+                            textAlign: "center",  // Centers text inside the input
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            margin: "0 auto", // Centers the input itself in its container
+                        }}
+                        type="text"
+                        placeholder="Search by Name or GC"
+                        onChange={handleSearchChange}
+                        value={searchInput}
+                    />
+                </div>
+
+                <div className="funding-filters-column" style={{ marginRight: "-3%", marginTop: '.5%' }}>
                     <div>
                         <input
                             type="checkbox"
@@ -169,7 +223,7 @@ export default function Funding() {
                         <label htmlFor="showFundedCards">Show Funded Cards</label>
                     </div>
                 </div>
-                <div className="funding-filters-column" style={{ marginTop: '.5%'}}>
+                <div className="funding-filters-column" style={{ marginTop: '.5%' }}>
                     <div>
                         <input
                             type="checkbox"
@@ -198,30 +252,33 @@ export default function Funding() {
                         <button className="funding-button-style">Create and Fund Card</button>
                     </Link>
                 </div>
-
             </section>
 
             <header className="funding-header-grid">
-                <div>GC Number</div>
-                <div>Customer</div>
-                <div>Tour ID</div>
-                <div>Sub Program</div>
-                <div>Amount</div>
-                <div>Premium</div>
-                <div>Refund</div>
-                <div>Balance</div>
-                <div>Status</div>
-                {/* <div>Edit</div> */}
+                {[
+                    { key: "gcNumber", label: "GC Number" },
+                    { key: "customer", label: "Customer" },
+                    { key: "tourId", label: "Tour ID" },
+                    { key: "subProgram", label: "Sub Program" },
+                    { key: "amount", label: "Amount" },
+                    { key: "premium", label: "Premium" },
+                    { key: "refund", label: "Refund" },
+                    { key: "balance", label: "Balance" },
+                    { key: "cardStatus", label: "Status" }
+                ].map(({ key, label }) => (
+                    <div key={key} onClick={() => handleSort(key as keyof fundingInfo)} style={{ cursor: "pointer" }}>
+                        {label} {sortColumn === key ? (sortDirection === "asc" ? "▲" : "▼") : ""}
+                    </div>
+                ))}
                 <div>View</div>
                 <div>Void</div>
             </header>
 
             <main className="scrollable-funding-list hide-scroll">
-                {filteredFundingList.map((value, index) => (
+                {sortedFundingList.map((value, index) => (
                     <div
                         key={index}
-                        className={`funding-item-grid ${index % 2 === 0 ? "funding-item-grid-alt" : ""
-                            }`}
+                        className={`funding-item-grid ${index % 2 === 0 ? "funding-item-grid-alt" : ""}`}
                     >
                         <div>{value.gcNumber}</div>
                         <div>{value.customer}</div>
@@ -232,14 +289,11 @@ export default function Funding() {
                         <div>{value.refund}</div>
                         <div>{value.balance}</div>
                         <div>{value.cardStatus}</div>
-                        {/* <Link to={`/viewInfo?gc=${value.gcNumber}`}>
-              <img src="../edit.svg" width={25} alt="" />
-            </Link> */}
                         <Link to={`/viewInfo?gc=${value.gcNumber}`}>
-                            <img src="../magnifying_glass.svg" width={25} alt="" />
+                            <img src="../magnifying_glass.svg" width={25} alt="View" />
                         </Link>
                         <Link to={`/voidCard?gc=${value.gcNumber}&customer=${value.customer}`}>
-                            <img src="../cancel.svg" width={25} alt="" />
+                            <img src="../cancel.svg" width={25} alt="Void" />
                         </Link>
                     </div>
                 ))}

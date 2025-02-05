@@ -33,6 +33,22 @@
     margin-left: 2%;
 } 
 
+.search-input input {
+    border: 2px solid #d1d5db;
+    margin: 0;
+    padding: 15px 10px;
+    border-radius: 5px;
+    width: 250px;
+    font-size: x-large;
+    text-align: center;
+    margin-left: 5%;
+}
+
+.search-input{
+    margin-right: 2%; /* Adds space between each section */
+    margin-left: 2%;
+}
+
 /* Container for the section containing the date picker */
 .tour-section {
     display: flex;

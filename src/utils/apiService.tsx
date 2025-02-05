@@ -78,14 +78,10 @@ export const checkUser = async (email: string) => {
 
 export const getFundingList = async (request: any) => {
   try {
+    console.log(request)
     request = {
       userName: request.username,
-      date: request.date,
-      showUnfunded: true,
-      showFunded: true,
-      showAllUnfunded: true,
-      showZeroPurse: true,
-      showVoidTrans: true
+      date: request.date
     }
     const url = `${API_URL}/getFundingList`;
     const response = await apiRequest(
@@ -162,11 +158,12 @@ export const voidCard = async (data: any) => {
 
 export const updateLocation = async (locationData: any) => {
   try {
+    console.log(locationData)
     const url = `${API_URL}/updateLocation`;
     const response = await apiRequest(
       post,
       url,
-      'voidCard',
+      'updateLocation',
       locationData
     );
     return response;

@@ -8,16 +8,19 @@ export default function FundCard() {
     const customer = searchParams.get("customer") || "";
     const tourId = searchParams.get("tourId") || "";
     const subProgram = searchParams.get("subProgram") || "";
+    const premium = (parseFloat(searchParams.get("premium") || "0")).toFixed(2);
+    const refund = ((parseFloat(searchParams.get("refund") || "0"))).toFixed(2);
+    const amount = (parseFloat(premium) + parseFloat(refund)).toFixed(2);
 
     const [formData, setFormData] = useState({
         attmid: "",
-        password: "",
+        // password: "",
         customer,
         tourId,
         subProgram,
-        amount: (parseFloat(searchParams.get("amount") || "0")).toFixed(2),
-        premium: (parseFloat(searchParams.get("premium") || "0")).toFixed(2),
-        refund: (parseFloat(searchParams.get("refund") || "0")).toFixed(2),
+        amount,
+        premium,
+        refund
     });
 
     const [statusMessage, setStatusMessage] = useState<string>("");
@@ -28,26 +31,26 @@ export default function FundCard() {
         parseFloat(formData.premium) <= 500 &&
         parseFloat(formData.refund) <= 500 &&
         parseFloat(formData.amount) ===
-            parseFloat(formData.premium) + parseFloat(formData.refund);
+        parseFloat(formData.premium) + parseFloat(formData.refund);
 
-            const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-                const { id, value } = e.target;
-            
-                // If the field is 'customer' or 'subProgram', allow letters and spaces
-                if (id === "customer" || id === "subProgram") {
-                    setFormData((prevData) => ({
-                        ...prevData,
-                        [id]: value,  // Allow all characters for these fields
-                    }));
-                } else {
-                    // For other fields, ensure only valid numeric input
-                    const numericValue = value.replace(/[^0-9.]/g, ""); // Remove non-numeric characters except "."
-                    setFormData((prevData) => ({
-                        ...prevData,
-                        [id]: numericValue,
-                    }));
-                }
-            };
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { id, value } = e.target;
+
+        // If the field is 'customer' or 'subProgram', allow letters and spaces
+        if (id === "customer" || id === "subProgram") {
+            setFormData((prevData) => ({
+                ...prevData,
+                [id]: value,  // Allow all characters for these fields
+            }));
+        } else {
+            // For other fields, ensure only valid numeric input
+            const numericValue = value.replace(/[^0-9.]/g, ""); // Remove non-numeric characters except "."
+            setFormData((prevData) => ({
+                ...prevData,
+                [id]: numericValue,
+            }));
+        }
+    };
 
     const handleSubmit = async () => {
         if (isFormValid) {
@@ -57,7 +60,7 @@ export default function FundCard() {
                     attmid: formData.attmid,
                     amount: formData.amount,
                 });
-    
+
                 // Check for specific keywords in the response
                 if (response.includes("1,Transaction successful")) {
                     setStatusMessage("Card Funded Successfully!");
@@ -65,14 +68,15 @@ export default function FundCard() {
                         22: "Main Line",
                         23: "In House",
                         24: "Massanutten",
-                      };
-                      const locationId = localStorage.getItem("location");
-                      const location = locationMap[locationId || 22] || "Main Line";
+                    };
+                    const locationId = localStorage.getItem("location");
+                    const user = localStorage.getItem("username");
+                    const location = locationMap[locationId || 22] || "Main Line";
                     const requestString = JSON.stringify({
                         attmid: formData.attmid,
                         amount: formData.amount,
                         transaction: "fundCard"
-                    },null,2)
+                    }, null, 2)
                     console.log(formData)
                     const logResponse = await logTransactions({
                         gcNumber: formData.attmid,
@@ -86,12 +90,13 @@ export default function FundCard() {
                         response: response,  // Pass your response string here
                         responseCode: "1",  // Pass your response code here
                         responseDesc: "Transaction successful",  // Pass response description
-                        locationId: location // Pass location ID here based on the form data or your source
-                      });
-                      console.log(logResponse)
+                        locationId: location, // Pass location ID here based on the form data or your source
+                        creadtedBy: user
+                    });
+                    console.log(logResponse)
                 } else if (response.includes("15,Error!")) {
                     setStatusMessage("Card Already Funded");
-                } 
+                }
                 else {
                     setStatusMessage("Error Occurred. Card Failed to be Funded.");
                 }
@@ -101,11 +106,11 @@ export default function FundCard() {
             }
         }
     };
-    
+
 
     const inputFields: { id: keyof typeof formData; label: string; type: string; maxLength?: number }[] = [
         { id: "attmid", label: "ATTMID #", type: "text" },
-        { id: "password", label: "PIN", type: "password", maxLength: 4 }, // Changed type to "password"
+        // { id: "password", label: "PIN", type: "password", maxLength: 4 }, // Changed type to "password"
         { id: "customer", label: "Customer", type: "text" },
         { id: "tourId", label: "Tour ID", type: "text" },
         { id: "subProgram", label: "Sub Program", type: "text" },
@@ -113,7 +118,7 @@ export default function FundCard() {
         { id: "refund", label: "Refund", type: "text" },
         { id: "amount", label: "Amount", type: "text" },
     ];
-    
+
 
     return (
         <div

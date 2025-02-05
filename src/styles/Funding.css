@@ -19,6 +19,13 @@
     font-size: 16px;
 }
 
+.input-search input {
+    padding: 10px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
 /* Table header */
 .funding-table-header {
     display: grid;
@@ -92,6 +99,11 @@
     margin-left: 2%;
 } 
 
+.input-search{
+    margin-right: 2%; /* Adds space between each section */
+    margin-left: 2%;
+} 
+
 .funding-button {
     margin-right: 2%; /* Adds space between each section */
     margin-left: 2%;
@@ -101,6 +113,15 @@
 
 /* Date picker styles */
 .funding-date-picker input {
+    border: 2px solid #d1d5db;
+    margin: 0;
+    padding: 15px 10px;
+    border-radius: 5px;
+    margin-left: 5%;
+    width: 250px;
+}
+
+.input-search input {
     border: 2px solid #d1d5db;
     margin: 0;
     padding: 15px 10px;

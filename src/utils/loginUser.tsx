@@ -1,4 +1,4 @@
-import { BrowserAuthError, PublicClientApplication, type AccountInfo } from '@azure/msal-browser';
+import { BrowserAuthError, BrowserUtils, PublicClientApplication, type AccountInfo } from '@azure/msal-browser';
 import { checkUser } from './apiService.tsx';
 
 let redirectURI = process.env.REACT_APP_REDIRECT_URI || '';
@@ -7,16 +7,21 @@ const azureDirectoryId = process.env.REACT_APP_AZURE_DIRECTORY_ID || '';
 
 const url = window.location.href
 
-if(url === 'https://192.168.229.99/'){
+if (url === 'https://192.168.229.99/') {
     console.log(redirectURI);
-} 
-else if(url === 'https://localhost:3000/'){
+}
+else if (url === 'https://localhost:3000/') {
     redirectURI = 'https://localhost:3000/tour'
-} 
-else if (url === 'https://gca.massresort.com/'){
+}
+else if (url === 'https://gca.massresort.com/') {
     redirectURI = 'https://gca.massresort.com/tour'
 }
-let logoutURI = trimTourFromURL(redirectURI) || '';
+
+const locationMapping: { [key: string]: string } = {
+    "Main Line": "22",
+    "In House": "23",
+    "Massanutten": "24",
+};
 
 
 const msalConfig = {
@@ -32,10 +37,14 @@ const msalConfig = {
     },
 };
 
+const publicClientApplication = new PublicClientApplication(msalConfig);
+
 function trimTourFromURL(url) {
     // Check if the URL ends with '/tour' and remove it
     return url.endsWith('/tour') ? url.slice(0, -4) : url;
-  }
+}
+
+let logoutURI = trimTourFromURL(redirectURI) || '';
 
 // Inactivity timeout (15 minutes)
 const INACTIVITY_TIMEOUT = 15 * 60 * 1000; // 15 minutes in milliseconds
@@ -46,7 +55,7 @@ let inactivityTimer: NodeJS.Timeout;
 // Function to handle user inactivity
 const handleInactivity = async () => {
     await logoutUser();
-    window.location.href = redirectURI;
+    window.location.href = logoutURI;
 };
 
 // Function to reset inactivity timer
@@ -57,7 +66,7 @@ const resetInactivityTimer = () => {
 
 // Attach activity listeners to reset the timer
 const addActivityListeners = () => {
-    window.addEventListener('mousemove', resetInactivityTimer);
+    // window.addEventListener('mousemove', resetInactivityTimer);
     window.addEventListener('keydown', resetInactivityTimer);
     window.addEventListener('click', resetInactivityTimer);
 };
@@ -65,11 +74,25 @@ const addActivityListeners = () => {
 addActivityListeners();
 resetInactivityTimer();
 
-export async function loginUser(location: string,selectedAccount?: AccountInfo): Promise<AccountInfo | null> {
+const initializeMSAL = async () => {
     try {
-        // Initialize PublicClientApplication
-        const publicClientApplication = new PublicClientApplication(msalConfig);
-        await publicClientApplication.initialize();  // Initialize MSAL
+        await publicClientApplication.initialize();
+        console.log("MSAL initialized");
+
+        sessionStorage.clear();
+    } catch (error) {
+        console.error("MSAL initialization failed:", error);
+    }
+};
+
+initializeMSAL();
+
+export async function loginUser(selectedAccount?: AccountInfo): Promise<AccountInfo | null> {
+    try {
+        if (publicClientApplication.getAllAccounts().length === 0 && BrowserUtils.isInIframe()) {
+            console.warn("Interaction in progress, aborting new login request.");
+            return null;
+        }
 
         const loginRequest = {
             scopes: ['User.Read'], // Include necessary scopes
@@ -97,20 +120,25 @@ export async function loginUser(location: string,selectedAccount?: AccountInfo):
         const apiResponse = await checkUser(userEmail)
         const userData = apiResponse;
 
-        if(userGroups.includes('48175477-2fb0-493b-9089-d5677dd5e1d5')){
+        const mappedLocation = locationMapping[userData.Location]
+        localStorage.setItem('location', mappedLocation)
+        localStorage.setItem('username', userData.UserName)
+
+        if (userGroups.includes('48175477-2fb0-493b-9089-d5677dd5e1d5')) {
             localStorage.setItem('role', 'admin')
         }
-        if(userGroups.includes('ef1ca496-ddc6-431f-bb0d-b7ac3410acaf')){
+        if (userGroups.includes('ef1ca496-ddc6-431f-bb0d-b7ac3410acaf')) {
             localStorage.setItem('role', 'user')
         }
-        if(location){
-            localStorage.setItem('location', location)
-        }
+
 
         // If user is allowed, save their access token and return their account info
-        localStorage.setItem('username', userData.UserName || "");
+
+        //   let  userName = userEmail.split('@')[0]
+
+        // localStorage.setItem('username', userName || "");
         localStorage.setItem('access_token', response.accessToken);
-        
+
         return response.account;
     } catch (error) {
         console.error('Login failed:', error);
@@ -135,23 +163,26 @@ function jwtDecode(idToken: string): any {
 // Function to handle logout
 export async function logoutUser() {
     try {
-        const publicClientApplication = new PublicClientApplication(msalConfig);
-        await publicClientApplication.initialize();
-
         const accounts = publicClientApplication.getAllAccounts();
+        console.log(accounts)
 
         if (accounts.length > 0) {
-            sessionStorage.clear();
-            localStorage.clear();
 
             await publicClientApplication.logoutRedirect({
                 idTokenHint: accounts[0].idToken,
                 postLogoutRedirectUri: logoutURI,
             });
+            sessionStorage.clear();
+            localStorage.clear();
+
         } else {
             console.warn("No accounts available to log out.");
         }
     } catch (error) {
-        console.error('Logout failed:', error);
+        if (error instanceof BrowserAuthError && error.errorCode === 'interaction_in_progress') {
+            console.error('An interaction is already in progress:', error);
+        } else {
+            console.error('Logout failed:', error);
+        }
     }
 }

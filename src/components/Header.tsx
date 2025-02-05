@@ -7,6 +7,7 @@ import "../styles/Header.css"; // Import the CSS file
 export default function Header() {
   const route = useLocation();
   const hideElements = route.pathname === "/"; // Hide when on login page or root
+  const inititalLocation = localStorage.getItem('location') || "22"
 
   async function handleLocation(location: string) {
     const locationNumber = Number(location);
@@ -44,10 +45,10 @@ export default function Header() {
 
         {!hideElements && ( // Hide location selector when on login page
           <div className="user-info">
-            <select className="location-selector" onChange={(event) => handleLocation(event.target.value)}>
+            <select className="location-selector" onChange={(event) => handleLocation(event.target.value)} defaultValue={inititalLocation}>
               <option value={22}>Main Line</option>
               <option value={23}>In House</option>
-              <option value={24}>Massanutten</option>
+              {/* <option value={24}>Massanutten</option> */}
             </select>
             <div>
               <button className="logout-button" onClick={logoutUser}>Logout</button>

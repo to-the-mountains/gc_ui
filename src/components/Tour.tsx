@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
-import React from 'react';
+import React from "react";
 import { getTourList } from "../utils/apiService.tsx";
 import { Link } from "react-router-dom";
-import "../styles/Tour.css"
+import "../styles/Tour.css";
 
 const getStoredLocation = (): number => {
     if (typeof window !== "undefined") {
@@ -12,7 +12,7 @@ const getStoredLocation = (): number => {
             if (locationId >= 22 && locationId <= 24) return locationId;
         }
     }
-    return 22; // Default to Main Line if not set or invalid
+    return 22;
 };
 
 export default function Tour() {
@@ -31,28 +31,56 @@ export default function Tour() {
     const [tourList, setTourList] = useState<Tour[]>([]);
     const [searchInput, setSearchInput] = useState<string>("");
     const [username] = useState(() =>
-        typeof window !== "undefined" ? localStorage.getItem("username") || "defaultUsername" : "defaultUsername"
+        typeof window !== "undefined"
+            ? localStorage.getItem("username") || "defaultUsername"
+            : "defaultUsername"
     );
 
     const [location, setLocation] = useState<number>(getStoredLocation);
-    const [date, setDate] = useState<string>(() => new Date().toISOString().split("T")[0]);
+    const [date, setDate] = useState<string>(() =>
+        new Date().toISOString().split("T")[0]
+    );
+
+    const [sortField, setSortField] = useState<keyof Tour | null>(null);
+    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+    const handleSort = (field: keyof Tour) => {
+        setSortOrder((prevOrder) =>
+            sortField === field && prevOrder === "asc" ? "desc" : "asc"
+        );
+        setSortField(field);
+    };
+
+    const sortedTourList = useMemo(() => {
+        const sorted = [...tourList].sort((a, b) => {
+            if (!sortField) return 0;
+            const aValue = a[sortField].toString().toLowerCase();
+            const bValue = b[sortField].toString().toLowerCase();
+            if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+            if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+            return 0;
+        });
+        return sorted;
+    }, [tourList, sortField, sortOrder]);
 
     const filteredTourList = useMemo(() => {
-        return tourList.filter(
+        return sortedTourList.filter(
             (tour) =>
                 tour.customer.toLowerCase().includes(searchInput.toLowerCase()) ||
                 (tour.gcNumber && tour.gcNumber.toLowerCase().includes(searchInput.toLowerCase()))
         );
-    }, [searchInput, tourList]);
+    }, [searchInput, sortedTourList]);
 
     const fetchTourList = async () => {
         try {
+            const userId = localStorage.getItem('username')
+            console.log("fetch Tours", userId, date, location);
             const results = await getTourList({
-                username: username,
+                username: userId,
                 date: date,
                 locationID: location,
             });
-
+            console.log("results", results);
             const mappedResults: Tour[] = results.map((item: any) => ({
                 arrival: `${item.Arrival_Date.split("T")[0]} ${item.Arrival_Time}`,
                 customer: item.Customer || "Unknown",
@@ -94,11 +122,11 @@ export default function Tour() {
                         style={{
                             paddingRight: "10%",
                             fontSize: "x-large",
-                            textAlign: "center",  // Centers text inside the input
+                            textAlign: "center",
                             display: "flex",
                             justifyContent: "center",
                             alignItems: "center",
-                            margin: "0 auto", // Centers the input itself in its container
+                            margin: "0 auto",
                         }}
                         type="date"
                         value={date}
@@ -106,18 +134,48 @@ export default function Tour() {
                         aria-label="Select date"
                     />
                 </div>
+                <div className="search-input">
+                    <input
+                        style={{
+                            paddingRight: "10%",
+                            fontSize: "x-large",
+                            textAlign: "center",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            margin: "0 auto",
+                        }}
+                        type="text"
+                        value={searchInput}
+                        placeholder="Search by Name or GC"
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        aria-label="search"
+                    />
+                </div>
             </section>
 
             <header className="tour-table-header grid grid-cols-10 justify-center py-2 bg-gray-500 text-white rounded-t-lg font-bold">
-                <div>Arrival</div>
-                <div>Customer</div>
-                <div>Tour ID</div>
-                <div>Sub Program</div>
-                <div>Premium</div>
-                <div>Refund</div>
-                <div>Tour Status</div>
-                <div>GC Number</div>
-                <div>Card Status</div>
+                {[
+                    "arrival",
+                    "customer",
+                    "tourId",
+                    "subProgram",
+                    "premium",
+                    "refund",
+                    "tourStatus",
+                    "gcNumber",
+                    "cardStatus",
+                ].map((field) => (
+                    <div
+                        key={field}
+                        className="cursor-pointer"
+                        onClick={() => handleSort(field as keyof Tour)}
+                        style={{ cursor: "pointer" }}
+                    >
+                        {field.charAt(0).toUpperCase() + field.slice(1)}
+                        {sortField === field ? (sortOrder === "asc" ? " ▲" : " ▼") : ""}
+                    </div>
+                ))}
                 <div>Fund</div>
             </header>
 
@@ -125,8 +183,9 @@ export default function Tour() {
                 {filteredTourList.map((value, index) => (
                     <div
                         key={index}
-                        className={`tour-table-row grid grid-cols-10 justify-center py-4 ${index % 2 === 0 ? "tour-table-row-alt bg-gray-200" : ""
-                            }`}
+                        className={`tour-table-row grid grid-cols-10 justify-center py-4 ${
+                            index % 2 === 0 ? "tour-table-row-alt bg-gray-200" : ""
+                        }`}
                     >
                         <div>{value.arrival}</div>
                         <div>{value.customer}</div>
