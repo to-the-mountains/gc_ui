@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { voidCard } from "../utils/apiService.tsx";
+import LogInPrompt from "./LogInPrompt.tsx";
+import { UseUser } from "../utils/userContext.tsx";
 
 const safeLocalStorageGet = (key: string, defaultValue: string): string => {
     try {
@@ -99,6 +101,17 @@ export default function VoidCard() {
         { id: "cardId", label: "Card ID", type: "text" },
         { id: "attmid", label: "ATTMID #", type: "text" }
     ];
+
+    const { user } = UseUser();
+
+    const checkLogin = () => {
+        if (user == null) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
     return (
         <div
@@ -246,6 +259,10 @@ export default function VoidCard() {
                     </p>
                 )}
             </main>
+            <LogInPrompt
+                user={user}
+                open={checkLogin()}
+            />
         </div>
     );
 }

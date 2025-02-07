@@ -1,41 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../utils/loginUser.tsx"; // Import your loginUser function
 import React from "react";
+import { UseUser } from '../utils/userContext.tsx';
 
 export default function Login() {
-    const [location, setLocation] = useState("");
+    const { setUser } = UseUser();
+    useEffect(() => {
+        // Clear storage
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // Clear the user from context
+        setUser(null); // This will ensure that the user context is updated
+    }, [setUser]);
+
     const navigate = useNavigate(); // Hook for navigation
 
-    const selectStyles = {
-        borderRadius: '8px',
-        fontSize: 'xx-large',
-        width: '20%',
-        marginRight: '10px',
-        backgroundColor: '#2c3e50',
-        color: 'white',
-        border: '2px solid #3498db',
-        padding: '10px',
-        margin: '10px',
-        //textAlign: 'center',
-        lineHeight: '40px'
-    };
-
-    function handleLocation(location: string) {
-        // Convert the string to a number
-        setLocation(location);
-        const locationNumber = Number(location);
-    
-        // Store the number in localStorage
-        localStorage.setItem('location', locationNumber.toString());
-    
-        return locationNumber;
-    }
 
     const handleLogin = async () => {
         // if (location) {
             const user = await loginUser(); // Call the loginUser function
             if (user) {
+                setUser(user);
                 navigate("/tour"); // Redirect to /tour after successful login
             } else {
                 console.error('Login failed');
@@ -52,17 +39,6 @@ export default function Login() {
                 alignItems: 'center',
                 height: '50vh'
             }}>
-                {/* <select
-                    className="text-black rounded-md p-2"
-                    style={selectStyles}
-                    onChange={(event)=>handleLocation(event.target.value)}
-                    value={location}
-                >
-                    <option value="" hidden>Select Your Location</option>
-                    <option value={22}>Main Line</option>
-                    <option value={23}>In House</option>
-                    <option value={24}>Massanutten</option>
-                </select> */}
                 <button
                     style={{
                         backgroundColor: '#F15e44', // Grey out when no location is selected

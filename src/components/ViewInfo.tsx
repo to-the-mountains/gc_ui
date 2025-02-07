@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { getTransactionList } from "../utils/apiService.tsx";
 import "../styles/ViewInfo.css"; // Import the updated CSS file
+import { UseUser } from "../utils/userContext.tsx";
+import LogInPrompt from "./LogInPrompt.tsx";
 
 export default function ViewInfo() {
     type transactionInfo = {
@@ -72,6 +74,17 @@ export default function ViewInfo() {
         fetchTransactionList();
     }, []);
 
+    const { user } = UseUser();
+
+    const checkLogin = () => {
+        if (user == null) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
     return (
         <div className="view-info-container">
             <h1 className="view-info-heading">Gift Card Status</h1>
@@ -110,6 +123,10 @@ export default function ViewInfo() {
                     ))}
                 </div>
             </div>
+            <LogInPrompt
+                user={user}
+                open={checkLogin()}
+            />
         </div>
     );
 }

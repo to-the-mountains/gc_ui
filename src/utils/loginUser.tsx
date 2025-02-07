@@ -13,6 +13,9 @@ if (url === 'https://192.168.229.99/') {
 else if (url === 'https://localhost:3000/') {
     redirectURI = 'https://localhost:3000/tour'
 }
+else if (url === 'http://localhost:3000/') {
+    redirectURI = 'http://localhost:3000/tour'
+}
 else if (url === 'https://gca.massresort.com/') {
     redirectURI = 'https://gca.massresort.com/tour'
 }

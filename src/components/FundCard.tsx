@@ -2,6 +2,8 @@ import React from "react";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { fundCard, logTransactions } from "../utils/apiService.tsx";
+import { UseUser } from "../utils/userContext.tsx";
+import LogInPrompt from "./LogInPrompt.tsx";
 
 export default function FundCard() {
     const [searchParams] = useSearchParams();
@@ -119,6 +121,16 @@ export default function FundCard() {
         { id: "amount", label: "Amount", type: "text" },
     ];
 
+    const { user } = UseUser();
+
+    const checkLogin = () => {
+        if (user == null) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
     return (
         <div
@@ -225,6 +237,10 @@ export default function FundCard() {
                     </p>
                 )}
             </main>
+            <LogInPrompt
+                user={user}
+                open={checkLogin()}
+            />
         </div>
     );
 }

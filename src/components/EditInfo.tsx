@@ -2,6 +2,8 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { fundCard } from "../utils/apiService.tsx";
+import LogInPrompt from "./LogInPrompt.tsx";
+import { UseUser } from "../utils/userContext.tsx";
 
 const safeLocalStorageGet = (key: string, defaultValue: string): string => {
     try {
@@ -104,6 +106,17 @@ export default function EditInfo() {
         { id: "refund", label: "Refund", type: "text" },
         { id: "amount", label: "Amount", type: "text" },
     ];
+
+    const { user } = UseUser();
+
+    const checkLogin = () => {
+        if (user == null) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
 
     return (
@@ -212,6 +225,10 @@ export default function EditInfo() {
                     </p>
                 )}
             </main>
+            <LogInPrompt
+                user={user}
+                open={checkLogin()}
+            />
         </div>
     );
 }
