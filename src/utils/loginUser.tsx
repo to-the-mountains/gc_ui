@@ -167,7 +167,6 @@ function jwtDecode(idToken: string): any {
 export async function logoutUser() {
     try {
         const accounts = publicClientApplication.getAllAccounts();
-        console.log(accounts)
 
         if (accounts.length > 0) {
 
