@@ -3,6 +3,8 @@ import React from "react";
 import { getTourList } from "../utils/apiService.tsx";
 import { Link } from "react-router-dom";
 import "../styles/Tour.css";
+import LogInPrompt from "./LogInPrompt.tsx";
+import { UseUser } from "../utils/userContext.tsx";
 
 const getStoredLocation = (): number => {
     if (typeof window !== "undefined") {
@@ -30,6 +32,7 @@ export default function Tour() {
 
     const [tourList, setTourList] = useState<Tour[]>([]);
     const [searchInput, setSearchInput] = useState<string>("");
+    const { user } = UseUser();
     const [username] = useState(() =>
         typeof window !== "undefined"
             ? localStorage.getItem("username") || "defaultUsername"
@@ -113,6 +116,16 @@ export default function Tour() {
             window.removeEventListener("storage", handleStorageChange);
         };
     }, []);
+
+    const checkLogin = () => {
+        if (user == null) {
+            console.log("GOT HERE!")
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
     return (
         <div className="mx-8">
@@ -215,6 +228,10 @@ export default function Tour() {
                     </div>
                 ))}
             </main>
+            <LogInPrompt
+                user={user}
+                open={checkLogin()}
+            />
         </div>
     );
 }

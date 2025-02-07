@@ -1,6 +1,8 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { getUserList } from "../utils/apiService.tsx";
+import { UseUser } from "../utils/userContext.tsx";
+import LogInPrompt from "./LogInPrompt.tsx";
 
 export default function Users() {
   const [selection, setSelection] = useState({
@@ -64,6 +66,17 @@ export default function Users() {
       matchesLastname &&
       matchesSearchTerm;
   });
+
+  const { user } = UseUser();
+
+    const checkLogin = () => {
+        if (user == null) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
   return (
     <div className="mx-8">
@@ -200,6 +213,10 @@ export default function Users() {
           </section>
         ))}
       </main>
+      <LogInPrompt
+                user={user}
+                open={checkLogin()}
+            />
     </div>
   );
 }

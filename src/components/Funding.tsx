@@ -4,6 +4,8 @@ import { getFundingList } from "../utils/apiService.tsx";
 import { Link } from "react-router";
 import React from "react";
 import '../styles/Funding.css'; // Import the CSS file
+import LogInPrompt from "./LogInPrompt.tsx";
+import { UseUser } from "../utils/userContext.tsx";
 
 const safeLocalStorageGet = (key: string, defaultValue: string): string => {
     try {
@@ -165,6 +167,17 @@ export default function Funding() {
         return sortedList;
     }, [sortColumn, sortDirection, filteredFundingList]);
 
+    const { user } = UseUser();
+
+    const checkLogin = () => {
+        if (user == null) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
     return (
         <div className="mx-8">
             <section className="funding-section">
@@ -298,6 +311,10 @@ export default function Funding() {
                     </div>
                 ))}
             </main>
+            <LogInPrompt
+                user={user}
+                open={checkLogin()}
+            />
         </div>
     );
 }
