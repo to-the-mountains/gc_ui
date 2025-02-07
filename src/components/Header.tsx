@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { updateLocation } from "../utils/apiService.tsx";
 import { logoutUser } from "../utils/loginUser.tsx";
 import React from "react";
@@ -6,6 +6,7 @@ import "../styles/Header.css"; // Import the CSS file
 
 export default function Header() {
   const route = useLocation();
+  const navigate = useNavigate();
   const hideElements = route.pathname === "/"; // Hide when on login page or root
   const inititalLocation = localStorage.getItem('location') || "22"
 
@@ -34,6 +35,11 @@ export default function Header() {
     updateLocation(data);
   }
 
+  async function handleLogout(){
+    await logoutUser();
+    navigate("/");
+  }
+
   return (
     <header className="header">
       {/* Top header section with logo and user info */}
@@ -51,7 +57,7 @@ export default function Header() {
               {/* <option value={24}>Massanutten</option> */}
             </select>
             <div>
-              <button className="logout-button" onClick={logoutUser}>Logout</button>
+              <button className="logout-button" onClick={handleLogout}>Logout</button>
             </div>
           </div>
         )}
