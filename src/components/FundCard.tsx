@@ -93,7 +93,7 @@ export default function FundCard() {
                         responseCode: "1",  // Pass your response code here
                         responseDesc: "Transaction successful",  // Pass response description
                         locationId: location, // Pass location ID here based on the form data or your source
-                        creadtedBy: user
+                        createdBy: user
                     });
                     console.log(logResponse)
                 } else if (response.includes("15,Error!")) {

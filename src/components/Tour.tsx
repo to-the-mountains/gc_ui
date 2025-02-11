@@ -77,13 +77,12 @@ export default function Tour() {
     const fetchTourList = async () => {
         try {
             const userId = localStorage.getItem('username')
-            console.log("fetch Tours", userId, date, location);
             const results = await getTourList({
                 username: userId,
                 date: date,
                 locationID: location,
             });
-            console.log("results", results);
+
             const mappedResults: Tour[] = results.map((item: any) => ({
                 arrival: `${item.Arrival_Date.split("T")[0]} ${item.Arrival_Time}`,
                 customer: item.Customer || "Unknown",
@@ -119,7 +118,6 @@ export default function Tour() {
 
     const checkLogin = () => {
         if (user == null) {
-            console.log("GOT HERE!")
             return true;
         }
         else {
