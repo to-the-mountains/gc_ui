@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { voidCard } from "../utils/apiService.tsx";
+import { getFundedAmount, logVoidTransactions, voidCard } from "../utils/apiService.tsx";
 import LogInPrompt from "./LogInPrompt.tsx";
 import { UseUser } from "../utils/userContext.tsx";
 
@@ -66,7 +66,7 @@ export default function VoidCard() {
         const { id, value } = e.target;
 
         // Ensure only valid numeric input
-        const numericValue = value.replace(/[^0-9.]/g, ""); // Remove non-numeric characters except "."
+        const numericValue = value.replace(/[^0-9.*]/g, ""); // Remove non-numeric characters except "."
         setFormData((prevData) => ({
             ...prevData,
             [id]: numericValue,
@@ -76,17 +76,50 @@ export default function VoidCard() {
     const handleSubmit = async () => {
         if (isFormValid) {
             try {
-                // Make the API call with `fundCard`
+                const fundLog = await getFundedAmount({
+                    gc: formData.attmid
+                })
+                
+                const voidAmount = (-Math.abs(parseFloat(fundLog[0].Balance))).toFixed(2)
+                
                 const response = await voidCard({
-                    attmid: formData.attmid,
                     cardId: formData.cardId,
+                    voidAmount: voidAmount
                 });
-    
+                console.log(response)
                 // Check for specific keywords in the response
                 if (response.includes("1,Transaction successful")) {
-                    setStatusMessage("Card Funded Successfully!");
-                } else if (response.includes("15,Error!")) {
-                    setStatusMessage("Card Already Funded");
+                    setStatusMessage("Card Voided Successfully");
+                    const locationMap = {
+                        22: "Main Line",
+                        23: "In House",
+                        24: "Massanutten",
+                    };
+                    const locationId = localStorage.getItem("location");
+                    const user = localStorage.getItem("username");
+                    const location = locationMap[locationId || 22] || "Main Line";
+                    const requestString = JSON.stringify({
+                        attmid: formData.attmid,
+                        amount: voidAmount,
+                        transaction: "voidCard"
+                    }, null, 2)
+                    
+                    const logResponse = await logVoidTransactions({
+                        gcNumber: formData.attmid,
+                        amount: -Math.abs(fundLog[0].Balance),
+                        premium: fundLog[0].Premium,
+                        refund: fundLog[0].Refund,
+                        customer: fundLog[0].Customer,
+                        tourId: fundLog[0].Tour_id,
+                        subProgram: fundLog[0].Sub_Program,
+                        request: requestString,  // Pass your request string here
+                        response: response,  // Pass your response string here
+                        responseCode: "1",  // Pass your response code here
+                        responseDesc: "Transaction successful",  // Pass response description
+                        locationId: location, // Pass location ID here based on the form data or your source
+                        createdBy: user
+                    });
+                    console.log(logResponse)
                 } else {
                     setStatusMessage("Error Occurred. Card Failed to be Funded.");
                 }

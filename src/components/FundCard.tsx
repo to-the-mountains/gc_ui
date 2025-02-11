@@ -1,7 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { fundCard, logTransactions } from "../utils/apiService.tsx";
+import { fundCard, logFundTransactions } from "../utils/apiService.tsx";
 import { UseUser } from "../utils/userContext.tsx";
 import LogInPrompt from "./LogInPrompt.tsx";
 
@@ -80,7 +80,7 @@ export default function FundCard() {
                         transaction: "fundCard"
                     }, null, 2)
                     console.log(formData)
-                    const logResponse = await logTransactions({
+                    const logResponse = await logFundTransactions({
                         gcNumber: formData.attmid,
                         amount: formData.amount,
                         premium: formData.premium,
