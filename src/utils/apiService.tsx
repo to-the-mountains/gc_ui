@@ -209,7 +209,21 @@ export const getTransactionList = async (gc: any) => {
     }
 };
 
-
+export const addUser = async (userData: any) => {
+    try {
+        const url = `${API_URL}/addUser`;
+        const response = await apiRequest(
+            post,
+            url,
+            'addUser',
+            userData
+        );
+        return response;
+    } catch (error) {
+        console.error('Error adding user', error);
+        throw error;
+    }
+};
 
 export const getFundedAmount = async (gc: any) => {
     try {

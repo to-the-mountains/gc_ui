@@ -1,24 +1,12 @@
+import { useEffect, useState, useMemo } from "react";
 import React from "react";
-import { useEffect, useState } from "react";
 import { getUserList } from "../utils/apiService.tsx";
-import { UseUser } from "../utils/userContext.tsx";
 import LogInPrompt from "./LogInPrompt.tsx";
+import { UseUser } from "../utils/userContext.tsx";
+import "../styles/Users.css";
+import { Link } from "react-router-dom";
 
 export default function Users() {
-  const [selection, setSelection] = useState({
-    username: "",
-    role: "",
-    location: "",
-    lastname: "",
-    firstname: "",
-    phone: "",
-    email: "",
-    active: "",
-  });
-
-  const [userList, setUserList] = useState<User[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-
   type User = {
     username: string;
     role: string;
@@ -30,178 +18,186 @@ export default function Users() {
     active: string;
   };
 
+  const [userList, setUserList] = useState<User[]>([]);
+  const [searchFields, setSearchFields] = useState<{ [key in keyof User]?: string }>({});
+  const [sortField, setSortField] = useState<keyof User | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const { user } = UseUser();
+  const currentUserRole = localStorage.getItem("role") || "user";
+  const isAdmin = currentUserRole === "admin";
+
   const fetchUserList = async () => {
-    const results = await getUserList();
-    const mappedResults = results.map((user: any) => ({
-      username: user.UserName,
-      role: user.Role,
-      location: user.Location,
-      lastname: user.LastName,
-      firstname: user.FirstName,
-      phone: user.Phone,
-      email: user.Email,
-      active: user.Active.toString(),
-    }));
-    setUserList(mappedResults);
+    try {
+      const results = await getUserList();
+      const mappedResults: User[] = results.map((user: any) => ({
+        username: user.UserName,
+        role: user.Role,
+        location: user.Location,
+        lastname: user.LastName,
+        firstname: user.FirstName,
+        phone: user.Phone,
+        email: user.Email,
+        active: user.Active.toString(),
+      }));
+      setUserList(mappedResults);
+    } catch (error) {
+      console.error("Error fetching user list:", error);
+    }
   };
 
   useEffect(() => {
     fetchUserList();
   }, []);
 
-  const filteredUserList = userList.filter((user) => {
-    // Check if the user matches the filter criteria
-    const matchesUsername = user.username.toLowerCase().includes(selection.username.toLowerCase());
-    const matchesRole = user.role.toLowerCase().includes(selection.role.toLowerCase());
-    const matchesLocation = user.location.toLowerCase().includes(selection.location.toLowerCase());
-    const matchesFirstname = user.firstname.toLowerCase().includes(selection.firstname.toLowerCase());
-    const matchesLastname = user.lastname.toLowerCase().includes(selection.lastname.toLowerCase());
-    const matchesSearchTerm = user.lastname.toLowerCase().includes(searchTerm.toLowerCase());
+  const handleSort = (field: keyof User) => {
+    setSortOrder((prevOrder) => (sortField === field && prevOrder === "asc" ? "desc" : "asc"));
+    setSortField(field);
+  };
 
-    // Apply all conditions
-    return matchesUsername &&
-      matchesRole &&
-      matchesLocation &&
-      matchesFirstname &&
-      matchesLastname &&
-      matchesSearchTerm;
-  });
+  const handleSearchChange = (field: keyof User, value: string) => {
+    setSearchFields((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
-  const { user } = UseUser();
+  const handleDropdownChange = (field: keyof User, value: string) => {
+    setSearchFields((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
-    const checkLogin = () => {
-        if (user == null) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
+  const sortedUserList = useMemo(() => {
+    const sorted = [...userList].sort((a, b) => {
+      if (!sortField) return 0;
+      const aValue = a[sortField].toString().toLowerCase();
+      const bValue = b[sortField].toString().toLowerCase();
+      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+    return sorted;
+  }, [userList, sortField, sortOrder]);
+
+  const filteredUserList = useMemo(() => {
+    return sortedUserList.filter((user) =>
+      Object.keys(searchFields).every((key) => {
+        const fieldKey = key as keyof User;
+        // Default to an empty string if searchFields[fieldKey] is undefined or null
+        const searchValue = (searchFields[fieldKey] || "").toLowerCase();
+        return user[fieldKey]?.toLowerCase().includes(searchValue);
+      })
+    );
+  }, [searchFields, sortedUserList]);
+
+
+  // Get unique roles and locations for dropdown options
+  const uniqueRoles = [...new Set(userList.map(user => user.role))];
+  const uniqueLocations = [...new Set(userList.map(user => user.location))];
 
   return (
     <div className="mx-8">
-      <section className="flex justify-end items-center gap-40 h-[25lvh]">
-        {/* Search and Filters */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="grid grid-row-3 gap-2 font-bold">
-            <div>Username:</div>
-            <div>Role:</div>
-            <div>Location:</div>
-          </div>
-          <div className="grid grid-row-3 gap-2">
-            <input
-              className="bg-gray-100 rounded p-2"
-              type="text"
-              placeholder="username"
-              value={selection.username}
-              onChange={(e) =>
-                setSelection({ ...selection, username: e.target.value })
-              }
-            />
+      <section className="user-section">
+        <div className="search-group">
+          {["username", "firstname", "lastname"].map((field) => (
+            <div key={field} className="search-inputs">
+              <input
+                type="text"
+                value={searchFields[field as keyof User] || ""}
+                placeholder={`Search by ${field.charAt(0).toUpperCase() + field.slice(1)}`}
+                onChange={(e) => handleSearchChange(field as keyof User, e.target.value)}
+                aria-label={`Search by ${field}`}
+                className="search-bar"
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="search-group">
+          {["phone", "email"].map((field) => (
+            <div key={field} className="search-inputs">
+              <input
+                type="text"
+                value={searchFields[field as keyof User] || ""}
+                placeholder={`Search by ${field.charAt(0).toUpperCase() + field.slice(1)}`}
+                onChange={(e) => handleSearchChange(field as keyof User, e.target.value)}
+                aria-label={`Search by ${field}`}
+                className="search-bar"
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Role and Location Dropdowns */}
+        <div className="search-group">
+          <div className="search-input">
             <select
-              className="rounded p-2 bg-gray-100"
-              value={selection.role}
-              onChange={(e) =>
-                setSelection({ ...selection, role: e.target.value })
-              }
+              value={searchFields["role"] || ""}
+              onChange={(e) => handleDropdownChange("role", e.target.value)}
+              aria-label="Search by Role"
+              className="search-bar"
             >
-              <option value="">All Roles</option>
-              <option value="Admin">Admin</option>
-              <option value="GL">GL</option>
-              <option value="User">User</option>
+              <option value="">Select Role</option>
+              {uniqueRoles.map((role) => (
+                <option key={role} value={role}>
+                  {role}
+                </option>
+              ))}
             </select>
+          </div>
+
+          <div className="search-input">
             <select
-              className="rounded p-2 bg-gray-100"
-              value={selection.location}
-              onChange={(e) =>
-                setSelection({ ...selection, location: e.target.value })
-              }
+              value={searchFields["location"] || ""}
+              onChange={(e) => handleDropdownChange("location", e.target.value)}
+              aria-label="Search by Location"
+              className="search-bar"
             >
-              <option value="">All Locations</option>
-              <option value="In House">In House</option>
-              <option value="Main Line">Main Line</option>
-              <option value="Massanutten">Massanutten</option>
+              <option value="">Select Location</option>
+              {uniqueLocations.map((location) => (
+                <option key={location} value={location}>
+                  {location}
+                </option>
+              ))}
             </select>
           </div>
         </div>
-
-        {/* Firstname and Lastname Filters */}
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <div className="grid grid-row-2 gap-2 font-bold">
-            <div>First Name:</div>
-            <div>Last Name:</div>
-          </div>
-          <div className="grid grid-row-2 gap-2">
-            <input
-              className="bg-gray-100 rounded p-2"
-              type="text"
-              placeholder="first name"
-              value={selection.firstname}
-              onChange={(e) =>
-                setSelection({ ...selection, firstname: e.target.value })
-              }
-            />
-            <input
-              className="bg-gray-100 rounded p-2"
-              type="text"
-              placeholder="last name"
-              value={selection.lastname}
-              onChange={(e) =>
-                setSelection({ ...selection, lastname: e.target.value })
-              }
-            />
+        <div className="search-group">
+          <div className="search-input">
+          {isAdmin ? (
+              <Link to="/adduser">
+                <button className="add-user-button-style">Add User</button>
+              </Link>
+            ) : (
+              <button className="add-user-button-style-disabled" disabled>
+                Add User
+              </button>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Table Header */}
-      <header className="grid user-grid-cols justify-center justify-items-center py-2 bg-gray-400 rounded-t-lg font-bold">
-        <div className="">Username</div>
-        <div className="">Role</div>
-        <div className="">Location</div>
-        <div className="">Lastname</div>
-        <div className="">Firstname</div>
-        <div className="">Phone #</div>
-        <div className="">Email</div>
+      <header className="user-table-header grid grid-cols-7 justify-center py-2 bg-gray-500 text-white rounded-t-lg font-bold">
+        {["username", "role", "location", "lastname", "firstname", "phone", "email"].map((field) => (
+          <div
+            key={field}
+            className="cursor-pointer"
+            onClick={() => handleSort(field as keyof User)}
+            style={{ cursor: "pointer" }}
+          >
+            {field.charAt(0).toUpperCase() + field.slice(1)}
+            {sortField === field ? (sortOrder === "asc" ? " ▲" : " ▼") : ""}
+          </div>
+        ))}
       </header>
 
-      {/* Filtered User List */}
-      <main className="overflow-y-scroll max-h-[50lvh] hide-scroll example">
+      <main className="user-content overflow-y-scroll max-h-[60lvh] user-scroll">
         {filteredUserList.map((user, index) => (
-          <section
+          <div
             key={user.username}
-            className={`grid user-grid-cols justify-center justify-items-center py-4 ${
-              selection.username === user.username
-                ? "bg-blue-300"
-                : index % 2 === 0
-                ? "bg-gray-200"
-                : ""
-            }`}
-            onClick={() => {
-              setSelection((prevState) =>
-                prevState.username === user.username
-                  ? {
-                      username: "",
-                      role: "",
-                      location: "",
-                      lastname: "",
-                      firstname: "",
-                      phone: "",
-                      email: "",
-                      active: "",
-                    }
-                  : {
-                      username: user.username,
-                      role: user.role,
-                      location: user.location,
-                      lastname: user.lastname,
-                      firstname: user.firstname,
-                      phone: user.phone,
-                      email: user.email,
-                      active: user.active,
-                    }
-              );
-            }}
+            className={`user-table-row grid grid-cols-7 justify-center py-4 ${index % 2 === 0 ? "user-table-row-alt bg-gray-200" : ""
+              }`}
           >
             <div>{user.username}</div>
             <div>{user.role}</div>
@@ -210,13 +206,11 @@ export default function Users() {
             <div>{user.firstname}</div>
             <div>{user.phone}</div>
             <div>{user.email}</div>
-          </section>
+          </div>
         ))}
       </main>
-      <LogInPrompt
-                user={user}
-                open={checkLogin()}
-            />
+
+      <LogInPrompt user={user} open={user == null} />
     </div>
   );
 }
