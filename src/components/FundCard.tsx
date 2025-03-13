@@ -1,7 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { fundCard, logTransactions } from "../utils/apiService.tsx";
+import { fundCard, logFundTransactions } from "../utils/apiService.tsx";
 import { UseUser } from "../utils/userContext.tsx";
 import LogInPrompt from "./LogInPrompt.tsx";
 
@@ -79,8 +79,8 @@ export default function FundCard() {
                         amount: formData.amount,
                         transaction: "fundCard"
                     }, null, 2)
-                    
-                    const logResponse = await logTransactions({
+                    console.log(formData)
+                    const logResponse = await logFundTransactions({
                         gcNumber: formData.attmid,
                         amount: formData.amount,
                         premium: formData.premium,
@@ -95,6 +95,7 @@ export default function FundCard() {
                         locationId: location, // Pass location ID here based on the form data or your source
                         createdBy: user
                     });
+                    console.log(logResponse)
                 } else if (response.includes("15,Error!")) {
                     setStatusMessage("Card Already Funded");
                 }
