@@ -178,8 +178,8 @@ export default function Users() {
         </div>
       </section>
 
-      <header className="user-table-header grid grid-cols-7 justify-center py-2 bg-gray-500 text-white rounded-t-lg font-bold">
-        {["username", "role", "location", "lastname", "firstname", "phone", "email"].map((field) => (
+      <header className="user-table-header grid grid-cols-8 justify-center py-2 bg-gray-500 text-white rounded-t-lg font-bold">
+        {["username", "role", "location", "lastname", "firstname", "phone", "email", "active"].map((field) => (
           <div
             key={field}
             className="cursor-pointer"
@@ -196,7 +196,7 @@ export default function Users() {
         {filteredUserList.map((user, index) => (
           <div
             key={user.username}
-            className={`user-table-row grid grid-cols-7 justify-center py-4 ${index % 2 === 0 ? "user-table-row-alt bg-gray-200" : ""
+            className={`user-table-row grid grid-cols-8 justify-center py-4 ${index % 2 === 0 ? "user-table-row-alt bg-gray-200" : ""
               }`}
           >
             <div>{user.username}</div>
@@ -206,6 +206,7 @@ export default function Users() {
             <div>{user.firstname}</div>
             <div>{user.phone}</div>
             <div>{user.email}</div>
+            <div>{user.active === "true" ? "Active" : "Inactive"}</div>
           </div>
         ))}
       </main>
