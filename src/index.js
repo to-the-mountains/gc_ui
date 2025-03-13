@@ -8,6 +8,8 @@ import ViewInfo from "./components/ViewInfo.tsx";
 import VoidCard from "./components/VoidCard.tsx";
 import EditInfo from "./components/EditInfo.tsx";
 import Tour from "./components/Tour.tsx";
+import Users from "./components/Users.tsx";
+import AddUser from "./components/AddUser.tsx";
 import Header from "./components/Header.tsx"; // Import the Header component
 import reportWebVitals from "./reportWebVitals";
 import { UserProvider } from "./utils/userContext.tsx";
@@ -28,6 +30,8 @@ function AppRoutes() {
         <Route path="/VoidCard" element={<VoidCard />} />
         <Route path="/EditInfo" element={<EditInfo />} />
         <Route path="/FundCard" element={<FundCard />} />
+        <Route path="/Users" element={<Users />} />
+        <Route path="/AddUser" element={<AddUser />} />
       </Routes>
     </>
   );

@@ -72,6 +72,9 @@ export default function Header() {
           <Link className={route.pathname === "/funding" ? "active" : ""} to="/funding">
             Funding
           </Link>
+          <Link className={route.pathname === "/users" ? "active" : ""} to="/users">
+            Users
+          </Link>
         </section>
       )}
     </header>

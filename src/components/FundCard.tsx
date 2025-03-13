@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { fundCard, logFundTransactions } from "../utils/apiService.tsx";
@@ -26,6 +26,11 @@ export default function FundCard() {
     });
 
     const [statusMessage, setStatusMessage] = useState<string>("");
+    const [clearForm, setClearForm] = useState<boolean>(false)
+
+    useEffect(() => {
+        setClearForm(searchParams.size < 1);
+    }, [searchParams]);
 
     // Validation logic
     const isFormValid =
@@ -39,7 +44,7 @@ export default function FundCard() {
         const { id, value } = e.target;
 
         // If the field is 'customer' or 'subProgram', allow letters and spaces
-        if (id === "customer" || id === "subProgram") {
+        if (id === "customer" || id === "subProgram" || id === "tourId") {
             setFormData((prevData) => ({
                 ...prevData,
                 [id]: value,  // Allow all characters for these fields
@@ -132,6 +137,19 @@ export default function FundCard() {
         }
     }
 
+    const handleClearForm = () => {
+        setFormData({
+            attmid: "",
+            customer: "",
+            tourId: "",
+            subProgram: "",
+            amount: "0.00",
+            premium: "0.00",
+            refund: "0.00"
+        });
+        setStatusMessage("");
+    };
+
     return (
         <div
             style={{
@@ -222,7 +240,25 @@ export default function FundCard() {
                 >
                     Submit
                 </button>
-
+                {clearForm && (
+                    <button
+                        onClick={handleClearForm}
+                        style={{
+                            marginTop: "0.5rem",
+                            padding: "0.75rem",
+                            fontSize: "1rem",
+                            fontWeight: "600",
+                            backgroundColor: "#D14343",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "0.25rem",
+                            cursor: "pointer",
+                            transition: "background-color 0.2s",
+                        }}
+                    >
+                        Clear Form
+                    </button>
+                )}
                 {statusMessage && (
                     <p
                         style={{
